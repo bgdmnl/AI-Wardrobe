@@ -76,12 +76,6 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Create environment file:
-
-```bash
-cp .env.example .env
-```
-
 Run backend:
 
 ```bash
