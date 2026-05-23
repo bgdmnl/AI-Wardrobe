@@ -1,0 +1,75 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wardrobe
+      POSTGRES_USER: wardrobe
+      POSTGRES_PASSWORD: wardrobe
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wardrobe"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://wardrobe:wardrobe@db:5432/wardrobe
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      AI_PROVIDER: mock
+      UPLOAD_DIR: /app/uploads
+      CORS_ORIGINS: http://localhost:3000
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: ./backend
+    command: python -m arq app.worker.WorkerSettings
+    environment:
+      DATABASE_URL: postgresql+asyncpg://wardrobe:wardrobe@db:5432/wardrobe
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      AI_PROVIDER: mock
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  uploads:
