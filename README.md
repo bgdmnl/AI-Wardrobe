@@ -1,125 +1,195 @@
+```markdown
 # 👗 Wardrobe Tracker
 
-An AI-powered wardrobe management app that automatically analyzes and tags your clothing items. Upload a photo of any clothing piece and the app will identify its type, colors, material, pattern, season, and occasion using AI vision models.
+An AI-powered wardrobe management application that automatically analyzes and tags your clothing items. Upload a photo of any clothing piece and the app will identify its type, colors, material, pattern, season, and occasion using AI vision models. It also features an AI-driven outfit generator that creates stylish combinations directly from your digitized wardrobe.
 
 ---
 
 ## ✨ Features
 
-- 📸 **Photo Upload** — Upload images of clothing items directly from your browser
-- 🤖 **AI Analysis** — Automatically detects clothing type, colors, material, pattern, season, and occasion
-- 🏷️ **Smart Tagging** — Each item gets a set of descriptive tags for easy browsing
-- 🖼️ **Gallery View** — Browse your entire wardrobe in a clean card-based gallery
-- 🔍 **Item Detail** — View full AI-generated details for any clothing item
-- 🗑️ **Delete Items** — Remove items from your wardrobe
-- ⚡ **Background Processing** — AI analysis runs in the background so uploads are instant
-- 🔄 **Graceful Fallbacks** — Works without PostgreSQL (SQLite) and without Redis (local jobs)
+- 📸 **Single & Batch Photo Upload** — Upload individual files or batch-upload up to 30 clothing images at once.
+- 🤖 **AI Analysis Pipeline** — Automatically detects clothing type, colors, material, pattern, season, and occasion.
+- 🔄 **Smart Classification Hints & Re-analysis** — The AI leverages original file names or manual user adjustments as contextual hints to refine tags during re-analysis.
+- ⚠️ **Non-Clothing Content Detection** — Safeguards your wardrobe by flagging non-apparel items for a user manual confirmation review step before final parsing.
+- 👚 **AI Outfit Suggestions** — Automatically blends your completed wardrobe items into cohesive top, bottom, footwear, outerwear, and accessory outfits tailored by occasion, season, or style rules.
+- 🖼️ **Gallery View** — Browse your entire collection in a modern card-based layout featuring smart status tags and color preview badges.
+- ⚡ **Asynchronous Background Tasks** — Analysis pipelines execute seamlessly in the background. Enqueues workloads via Redis or gracefully steps down to concurrent local in-memory tasks.
+- 🔄 **Resilient Storage Architecture** — Operates natively on cloud-ready relational engines or runs locally via zero-configuration SQLite instances.
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- [Next.js 16](https://nextjs.org/) + React 19 + TypeScript
-- [Tailwind CSS v4](https://tailwindcss.com/)
-- [shadcn/ui](https://ui.shadcn.com/) component library
-- [Sonner](https://sonner.emilkowal.ski/) for toast notifications
+- **Framework:** Next.js 15+ (App Router) + React 19 + TypeScript
+- **Styling:** Tailwind CSS v4
+- **Components:** shadcn/ui (Primitive layer built on `@base-ui/react` and `lucide-react`)
+- **Notifications:** Sonner
 
 ### Backend
-- [FastAPI](https://fastapi.tiangolo.com/) (Python 3.12)
-- [SQLAlchemy](https://www.sqlalchemy.org/) async ORM
-- [PostgreSQL](https://www.postgresql.org/) (with automatic SQLite fallback)
-- [Redis](https://redis.io/) + [arq](https://arq-docs.helpmanual.io/) for background job processing
+- **Framework:** FastAPI (Python 3.12+)
+- **ORM:** SQLAlchemy Async Engine (`aiosqlite`)
+- **Database:** PostgreSQL (with automated fallback to a local `wardrobe.db` SQLite schema)
+- **Job Broker:** arq + Redis (with transparent async in-memory task runner fallback if broker is missing)
 
-### AI Providers (pluggable)
-- **Mock** (default) — Instant realistic random tags, no external calls needed
-- **Ollama** — Free local AI using LLaVA (vision) + LLaMA3 (text)
-- **OpenAI** — GPT-4o for production-quality analysis
+### AI Middleware
+- **Ollama** (Recommended & Native Local Default) — Vision evaluation via `llava` coupled with text generation via `llama3`.
+- **OpenAI / OpenAI-Compatible** — Connects to structured enterprise endpoints or commercial cloud model APIs.
+- **Mock** (Development Sandbox) — Generates local synthetic structures immediately for quick offline prototyping.
 
 ---
 
 ## 🚀 Getting Started
 
-### Option 1 — Docker (Recommended)
+> 💡 **Important Setup Note:** The best and only reliable way to execute this project locally with production-grade AI analysis is using **Ollama**.
 
-Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+### Manual Execution Setup (Recommended for Local Development)
 
-```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-cd Wardrobe
-docker compose up --build
+This app is structured as a decoupled full-stack architecture and should be run using two dedicated terminal sessions.
+
+#### Terminal 1 — Backend Architecture
+
+**Requirements:** Python 3.12+
+
+1. Navigate to the backend directory and provision a virtual environment:
+   ```bash
+   cd backend
+   python -m venv venv
+
 ```
 
-- **Frontend** → http://localhost:3000
-- **API Docs** → http://localhost:8000/docs
+2. Activate your local environment context:
+* **Windows PowerShell:**
+```powershell
+.\venv\Scripts\Activate.ps1
 
-### Option 2 — Manual (Python + Node.js)
+```
 
-**Requirements:** Python 3.12+, Node.js 20+
 
-**Terminal 1 — Backend:**
+* **Windows CMD:**
+```cmd
+.\venv\Scripts\activate.bat
+
+```
+
+
+* **macOS / Linux:**
 ```bash
-cd backend
-python -m venv venv
-
-# Windows
-venv\Scripts\activate
-# Mac/Linux
 source venv/bin/activate
 
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-**Terminal 2 — Frontend:**
+
+
+
+3. Install the application dependencies:
+```bash
+pip install -r requirements.txt
+
+```
+
+
+4. Create your application configuration layout:
+```bash
+cp .env.example .env
+
+```
+
+
+5. Spin up the localized Uvicorn API runtime:
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+```
+
+
+
+#### Terminal 2 — Frontend User Interface
+
+**Requirements:** Node.js 20+
+
+1. Navigate to the frontend workspace directory:
 ```bash
 cd frontend
-npm install
-npm run dev
+
 ```
 
-Open **http://localhost:3000**
 
-> PostgreSQL and Redis are optional — the app automatically falls back to SQLite and local background processing if they're not available.
+2. Install the node package dependencies:
+```bash
+npm install
+
+```
+
+
+3. Fire up the local development compilation pipeline:
+```bash
+npm run dev
+
+```
+
+
+
+* **User Portal View:** [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000)
+* **Interactive Open API Docs:** [http://localhost:8000/docs](https://www.google.com/search?q=http://localhost:8000/docs)
+* **System Health JSON Status Node:** [http://localhost:8000/api/health](https://www.google.com/search?q=http://localhost:8000/api/health)
 
 ---
 
-## ⚙️ Configuration
+### Option 2 — Docker (Optional Execution Mode)
 
-Copy `backend/.env.example` to `backend/.env` and adjust as needed:
+If you prefer containerized runtimes and have **Docker Desktop** installed, execute:
 
-| Variable | Default | Description |
-|---|---|---|
-| `DATABASE_URL` | PostgreSQL | Falls back to SQLite automatically |
-| `REDIS_HOST` | `localhost` | Falls back to local jobs if unavailable |
-| `AI_PROVIDER` | `mock` | `mock`, `ollama`, or `openai` |
-| `AI_VISION_MODEL` | `llava` | Vision model for image analysis |
-| `AI_TEXT_MODEL` | `llama3` | Text model for description generation |
-| `OPENAI_API_KEY` | *(empty)* | Required only if using OpenAI provider |
+```bash
+docker compose up --build
 
-### Enabling Real AI
-
-**With OpenAI:**
-```env
-AI_PROVIDER=openai
-OPENAI_API_KEY=sk-your-key-here
-AI_VISION_MODEL=gpt-4o
-AI_TEXT_MODEL=gpt-4o
-AI_ENDPOINTS=https://api.openai.com
 ```
 
-**With Ollama (free, local):**
+---
+
+## ⚙️ Local AI Engine Configuration (Ollama)
+
+To run the application locally without relying on paid or external cloud keys, configure Ollama on your machine:
+
+1. Download and pull the required open-source Vision and Language models locally:
 ```bash
 ollama pull llava
 ollama pull llama3
+
 ```
+
+
+2. Modify your `backend/.env` key mappings to target your local server instance:
 ```env
 AI_PROVIDER=ollama
 AI_ENDPOINTS=http://localhost:11434
 AI_VISION_MODEL=llava
 AI_TEXT_MODEL=llama3
+
 ```
+
+
+
+---
+
+## ⚙️ Alternative Environment Configurations
+
+Copy `backend/.env.example` to `backend/.env` and adapt the pipeline configuration layer to fit your setup:
+
+| Variable | System Fallback Mapping | Purpose / Operational Context |
+| --- | --- | --- |
+| `DATABASE_URL` | `sqlite+aiosqlite:///wardrobe.db` | Target PostgreSQL connection string; handles SQLite fallback gracefully |
+| `REDIS_HOST` | `localhost` | Broker domain for arq worker background tasks; falls back to local execution |
+| `REDIS_PORT` | `6379` | Active data connection port for the distributed job store |
+| `UPLOAD_DIR` | `./uploads` | Persistent pathing root where uploaded wardrobe files reside |
+| `AI_PROVIDER` | `mock` | Orchestration driver toggle: switch between `mock`, `ollama`, or `openai` |
+| `AI_ENDPOINTS` | `http://localhost:11434` | Comma-separated fallback endpoints for the target model client |
+| `AI_VISION_MODEL` | `llava` | Vision engine used to identify clothing visual characteristics |
+| `AI_TEXT_MODEL` | `llama3` | Main completion model that structures JSON tags and metadata texts |
+| `AI_TIMEOUT` | `60` | Hard cap processing deadline window for deep feature models |
+| `AI_MAX_RETRIES` | `3` | Maximum backoff retry attempts for handling API connection issues |
+| `OPENAI_API_KEY` | *(empty)* | Authorization header string; required only when using the `openai` driver |
+| `CORS_ORIGINS` | `http://localhost:3000` | Whitelisted cross-origin domains allowed to consume endpoint outputs |
 
 ---
 
@@ -129,34 +199,52 @@ AI_TEXT_MODEL=llama3
 Wardrobe/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py          # FastAPI app & startup
-│   │   ├── config.py        # Settings & env vars
-│   │   ├── database.py      # DB setup with SQLite fallback
-│   │   ├── models.py        # SQLAlchemy models
-│   │   ├── schemas.py       # Pydantic schemas
-│   │   ├── worker.py        # arq background worker
+│   │   ├── main.py              # FastAPI core lifecycle definition & CORS middleware
+│   │   ├── config.py            # Pydantic BaseSettings management layer 
+│   │   ├── database.py          # SQLAlchemy engine layer with dynamic Postgres-to-SQLite fallbacks
+│   │   ├── models.py            # Relational database table schemas for apparel assets
+│   │   ├── schemas.py           # Structured Pydantic validation nodes
+│   │   ├── worker.py            # Async arq queue worker + in-memory task task-runner loop
 │   │   ├── routes/
-│   │   │   ├── items.py     # Upload, list, delete endpoints
-│   │   │   └── health.py    # Health check endpoint
+│   │   │   ├── health.py        # System health checks (Database, Redis, and AI availability statuses)
+│   │   │   ├── items.py         # Image endpoints, single/batch uploads, re-analysis, reviews
+│   │   │   └── outfits.py       # Combinatorial outfit generation orchestration nodes
 │   │   └── services/
-│   │       ├── ai_service.py      # AI provider selector
-│   │       ├── ai_providers.py    # Mock & OpenAI-compatible providers
-│   │       └── ai_fallback.py     # Retry & fallback logic
+│   │       ├── ai_service.py     # AI driver selector engine
+│   │       ├── ai_providers.py   # Implementations for local Ollama and OpenAI API connectors
+│   │       ├── ai_fallback.py    # Resilience service managing endpoint retries & backoffs
+│   │       ├── analysis_hints.py # Normalizes data inputs from files to supply model context
+│   │       ├── analysis_result.py# Formats model schemas into system-readable attributes
+│   │       └── outfit_service.py # Core logical framework managing outfit rule sets
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── app/             # Next.js pages
-│   │   ├── components/      # UI components
+│   │   ├── app/                 # Next.js App Router structural layout nodes
+│   │   │   ├── item/[id]/       # Focused deep dive details view per apparel asset
+│   │   │   ├── outfits/         # Interface for requesting and viewing outfit combinations
+│   │   │   ├── upload/          # Upload manager workspace for single/batch files
+│   │   │   └── page.tsx         # Wardrobe gallery dash template view
+│   │   ├── components/          # UI Component architecture
+│   │   │   ├── ui/              # Atomized base layout blocks (buttons, sheets, cards)
+│   │   │   ├── gallery.tsx      # Wardrobe overview controller matching grid states
+│   │   │   ├── upload-form.tsx  # Dynamic drag-and-drop interactive form interface
+│   │   │   └── outfit-suggestions.tsx # Visual grid cards grouping outfit match layers
 │   │   └── lib/
-│   │       └── api.ts       # Backend API client
+│   │       ├── api.ts           # Axios/Fetch integration mapping all client requests
+│   │       └── utils.ts         # Utility methods for style definitions and Tailwind overrides
 │   ├── package.json
 │   └── Dockerfile
 └── docker-compose.yml
+
 ```
 
 ---
 
 ## 📄 License
 
-MIT
+This project is open-source and available under the [MIT License](https://www.google.com/search?q=LICENSE).
+
+```
+
+```
