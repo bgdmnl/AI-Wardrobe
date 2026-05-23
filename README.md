@@ -147,28 +147,6 @@ AI_TEXT_MODEL=llama3
 
 ---
 
-## 📁 Project Structure
-
-backend/
-  app/
-    main.py
-    config.py
-    database.py
-    models.py
-    schemas.py
-    worker.py
-    routes/
-    services/
-
-frontend/
-  src/
-    app/
-    components/
-    lib/
-
-docker-compose.yml
-
----
 
 ## 📄 License
 
